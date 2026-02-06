@@ -1,4 +1,6 @@
 #include "renderer.h"
+#include "cglm/affine-pre.h"
+#include "world.h"
 
 #include <cglm/cglm.h>
 #include <cglm/mat4.h>
@@ -18,35 +20,35 @@ const char* APP_NAME = "micromc";
 // First three entries are the vertex coordinates, the last two are the texture coordinates
 float vertices[] = {
     // Front
-    1.0f, 1.0f, 1.0f, 1.0f, 1.0f, // bottom right
-    1.0f, -1.0f, 1.0f, 1.0f, 0.0f, // top right
-   -1.0f, -1.0f, 1.0f, 0.0f, 0.0f, // top left
-   -1.0f, 1.0f, 1.0f, 0.0f, 1.0f, // bottom left
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, // bottom right
+    0.5f, -0.5f, 0.5f, 1.0f, 1.0f, // top right
+   -0.5f, -0.5f, 0.5f, 0.0f, 1.0f, // top left
+   -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, // bottom left
    // Back
-    1.0f, 1.0f, -1.0f, 0.0f, 1.0f, // bottom left
-    1.0f, -1.0f, -1.0f, 0.0f, 0.0f, // top left
-   -1.0f, -1.0f, -1.0f, 1.0f, 0.0f, // top right
-   -1.0f, 1.0f, -1.0f, 1.0f, 1.0f, // bottom right
+    0.5f, 0.5f, -0.5f, 0.0f, 0.0f, // bottom left
+    0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // top left
+   -0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // top right
+   -0.5f, 0.5f, -0.5f, 1.0f, 0.0f, // bottom right
    // Left
-   -1.0f, -1.0f, 1.0f, 1.0f, 0.0f, // top right
-   -1.0f, 1.0f, 1.0f, 1.0f, 1.0f, // bottom right
-   -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, // top left
-   -1.0f, 1.0f, -1.0f, 0.0f, 1.0f, // bottom left
+   -0.5f, -0.5f, 0.5f, 1.0f, 1.0f, // top right
+   -0.5f, 0.5f, 0.5f, 1.0f, 0.0f, // bottom right
+   -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // top left
+   -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, // bottom left
    // Right
-    1.0f, 1.0f, 1.0f, 0.0f, 1.0f, // bottom left
-    1.0f, -1.0f, 1.0f, 0.0f, 0.0f, // top left
-    1.0f, 1.0f, -1.0f, 1.0f, 1.0f, // bottom right
-    1.0f, -1.0f, -1.0f, 1.0f, 0.0f, // top right
+    0.5f, 0.5f, 0.5f, 0.0f, 0.0f, // bottom left
+    0.5f, -0.5f, 0.5f, 0.0f, 1.0f, // top left
+    0.5f, 0.5f, -0.5f, 1.0f, 0.0f, // bottom right
+    0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // top right
    // Bottom
-    1.0f, 1.0f, 1.0f, 1.0f, 0.0f, // top right
-   -1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // top left
-    1.0f, 1.0f, -1.0f, 1.0f, 1.0f, // bottom right
-   -1.0f, 1.0f, -1.0f, 0.0f, 1.0f, // bottom left
+    0.5f, 0.5f, 0.5f, 1.0f, 1.0f, // top right
+   -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, // top left
+    0.5f, 0.5f, -0.5f, 1.0f, 0.0f, // bottom right
+   -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, // bottom left
    // Top
-    1.0f, -1.0f, 1.0f, 1.0f, 1.0f, // bottom right
-   -1.0f, -1.0f, 1.0f, 0.0f, 1.0f, // bottom left
-    1.0f, -1.0f, -1.0f, 1.0f, 0.0f, // top right
-   -1.0f, -1.0f, -1.0f, 0.0f, 0.0f, // top left
+    0.5f, -0.5f, 0.5f, 1.0f, 0.0f, // bottom right
+   -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, // bottom left
+    0.5f, -0.5f, -0.5f, 1.0f, 1.0f, // top right
+   -0.5f, -0.5f, -0.5f, 0.0f, 1.0f, // top left
 };
 unsigned int indices[] = {
     // Front
@@ -123,7 +125,7 @@ static unsigned int load_texture() {
 vec3 camera_position = {0.0f, 0.0f, 0.0f};
 vec3 camera_up = {0.0f, 1.0f, 0.0f};
 vec3 camera_front = {0.0f, 0.0f, -1.0f};
-float camera_speed = 0.1f;
+float camera_speed = 0.3f;
 
 void key_callback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, [[maybe_unused]] int action, [[maybe_unused]] int mods) {
     vec3 delta;
@@ -154,6 +156,12 @@ void key_callback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, [[
         break;
     case GLFW_KEY_ESCAPE:
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+        break;
+    case GLFW_KEY_Q:
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        break;
+    case GLFW_KEY_E:
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         break;
     }
 }
@@ -228,7 +236,40 @@ void renderer_destroy(renderer *renderer) {
     glfwTerminate();
 }
 
-bool renderer_update(renderer* renderer) {
+static void draw_chunk(chunk* chunk, int chunk_i, int chunk_j, renderer* renderer) {
+    for(int x = 0; x < 16; x++) {
+        for(int z = 0; z < 16; z++) {
+            for(int y = 0; y < 256; y++) {
+                switch((*chunk)[x][y][z]) {
+                case BLOCK_DIRT:
+                    // transformation
+                    mat4 projection;
+                    glm_perspective(glm_rad(45.0f), (float)RESOLUTION_X/(float)RESOLUTION_Y, 0.0001f, 10000.0f, projection);
+                    mat4 model;
+                    glm_mat4_identity(model);
+                    vec3 block_position = { x + chunk_i * 16, y, z + chunk_j * 16 };
+                    glm_translate(model, block_position);
+                    mat4 view;
+                    vec3 camera_target;
+                    glm_vec3_add(camera_position, camera_front, camera_target);
+                    glm_lookat(camera_position, camera_target, camera_up, view);
+                    mat4 MVP;
+                    glm_mat4_mul(view, model, MVP);
+                    glm_mat4_mul(projection, MVP, MVP);
+                    auto uniformloc = glGetUniformLocation(renderer->shader_program, "MVP");
+                    glUniformMatrix4fv(uniformloc, 1, GL_FALSE, (const float*)MVP);
+                    // draw
+                    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
+                    break;
+                case BLOCK_AIR:
+                    break;
+                }
+            }
+        }
+    }
+}
+
+bool renderer_update(renderer* renderer, world* world) {
     glfwPollEvents();
 
     glClearColor(135.0f/255.0f, 206.0f/255.0f, 235.0f/255.0f, 1.0f);
@@ -238,22 +279,9 @@ bool renderer_update(renderer* renderer) {
     glBindTexture(GL_TEXTURE_2D, renderer->texture);
     glBindVertexArray(renderer->VAO);
 
-    // transformation
-    mat4 projection;
-    glm_perspective(glm_rad(45.0f), (float)RESOLUTION_X/(float)RESOLUTION_Y, 0.0001f, 10000.0f, projection);
-    mat4 model;
-    glm_mat4_identity(model);
-    mat4 view;
-    vec3 camera_target;
-    glm_vec3_add(camera_position, camera_front, camera_target);
-    glm_lookat(camera_position, camera_target, camera_up, view);
-    mat4 MVP;
-    glm_mat4_mul(view, model, MVP);
-    glm_mat4_mul(projection, MVP, MVP);
-
-    auto uniformloc = glGetUniformLocation(renderer->shader_program, "MVP");
-    glUniformMatrix4fv(uniformloc, 1, GL_FALSE, (const float*)MVP);
-    glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
+    for(unsigned int i = 0; i < world->chunk_count; i++) {
+        draw_chunk(&(world->chunks[i]), world->chunk_coords[i][0], world->chunk_coords[i][1], renderer);
+    }
 
     glfwSwapBuffers(renderer->window);
     return !glfwWindowShouldClose(renderer->window);

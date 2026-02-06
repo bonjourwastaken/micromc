@@ -25,7 +25,7 @@ glfw_opt.add_cmake_defines(
 glfw = cmake.subproject('glfw', options: glfw_opt).dependency('glfw')
 cglm = subproject('cglm').get_variable('cglm_dep')
 
-src = ['src/main.c', 'src/renderer.c', 'src/gl.c']
+src = ['src/main.c', 'src/renderer.c', 'src/world.c', 'src/gl.c']
 inc = [include_directories('inc')]
 dep = [glfw, cglm]
 
