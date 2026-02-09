@@ -6,7 +6,7 @@
 int main(void) {
     renderer renderer;
     renderer_create(&renderer);
-    world world = world_create(0, 4);
+    world world = world_create(0, 2);
 
     while(renderer_update(&renderer, &world)) {
 

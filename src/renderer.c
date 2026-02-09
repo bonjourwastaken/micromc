@@ -13,8 +13,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-const unsigned int RESOLUTION_X = 800;
-const unsigned int RESOLUTION_Y = 800;
+const unsigned int RESOLUTION_X = 1280;
+const unsigned int RESOLUTION_Y = 720;
 const char* APP_NAME = "micromc";
 
 // First three entries are the vertex coordinates, the last two are the texture coordinates
@@ -244,7 +244,7 @@ static void draw_chunk(chunk* chunk, int chunk_i, int chunk_j, renderer* rendere
                 case BLOCK_DIRT:
                     // transformation
                     mat4 projection;
-                    glm_perspective(glm_rad(45.0f), (float)RESOLUTION_X/(float)RESOLUTION_Y, 0.0001f, 10000.0f, projection);
+                    glm_perspective(glm_rad(90.0f), (float)RESOLUTION_X/(float)RESOLUTION_Y, 0.0001f, 10000.0f, projection);
                     mat4 model;
                     glm_mat4_identity(model);
                     vec3 block_position = { x + chunk_i * 16, y, z + chunk_j * 16 };
