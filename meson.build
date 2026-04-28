@@ -19,6 +19,7 @@ glfw_opt.add_cmake_defines(
     'GLFW_BUILD_TESTS': false,
     'GLFW_BUILD_DOCUMENTATION': false,
     'GLFW_INSTALL': false,
+    'GLFW_BUILD_X11': false,
   },
 )
 glfw = cmake.subproject('glfw', options: glfw_opt).dependency('glfw')
