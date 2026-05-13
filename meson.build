@@ -11,6 +11,10 @@ project(
   ],
 )
 
+if get_option('buildtype') == 'release'
+  add_project_link_arguments('-s', language: 'c')
+endif
+
 cmake = import('cmake')
 glfw_opt = cmake.subproject_options()
 glfw_opt.add_cmake_defines(

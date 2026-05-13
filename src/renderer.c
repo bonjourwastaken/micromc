@@ -6,6 +6,7 @@
 #include <cglm/mat4.h>
 #include <cglm/util.h>
 #include <cglm/vec3.h>
+#include <stdio.h>
 
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -125,35 +126,10 @@ static unsigned int load_texture() {
 vec3 camera_position = {0.0f, 0.0f, 0.0f};
 vec3 camera_up = {0.0f, 1.0f, 0.0f};
 vec3 camera_front = {0.0f, 0.0f, -1.0f};
-float camera_speed = 0.3f;
+float camera_speed = 5.0f;
 
 void key_callback(GLFWwindow* window, int key, [[maybe_unused]] int scancode, [[maybe_unused]] int action, [[maybe_unused]] int mods) {
-    vec3 delta;
     switch(key) {
-    case GLFW_KEY_W:
-    case GLFW_KEY_UP:
-        glm_vec3_copy(camera_front, delta);
-        glm_vec3_scale(delta, 1.0f * camera_speed, delta);
-        glm_vec3_add(camera_position, delta, camera_position);
-        break;
-    case GLFW_KEY_S:
-    case GLFW_KEY_DOWN:
-        glm_vec3_copy(camera_front, delta);
-        glm_vec3_scale(delta, -1.0f * camera_speed, delta);
-        glm_vec3_add(camera_position, delta, camera_position);
-        break;
-    case GLFW_KEY_A:
-    case GLFW_KEY_LEFT:
-        glm_cross(camera_front, camera_up, delta);
-        glm_vec3_scale(delta, -1.0f * camera_speed, delta);
-        glm_vec3_add(camera_position, delta, camera_position);
-        break;
-    case GLFW_KEY_D:
-    case GLFW_KEY_RIGHT:
-        glm_cross(camera_front, camera_up, delta);
-        glm_vec3_scale(delta, 1.0f * camera_speed, delta);
-        glm_vec3_add(camera_position, delta, camera_position);
-        break;
     case GLFW_KEY_ESCAPE:
         glfwSetWindowShouldClose(window, GLFW_TRUE);
         break;
@@ -188,12 +164,19 @@ void mouse_callback([[maybe_unused]] GLFWwindow* window, double xpos, double ypo
     glm_vec3_copy(look_direction, camera_front);
 }
 
+char* window_title;
+
 void renderer_create(renderer *renderer) {
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    int no_error = 0;
+    #ifdef NDEBUG
+    no_error = 1;
+    #endif
+    glfwWindowHint(GLFW_CONTEXT_NO_ERROR, no_error);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwSwapInterval(1);
     renderer->window = glfwCreateWindow(RESOLUTION_X, RESOLUTION_Y, APP_NAME, nullptr, nullptr);
@@ -226,9 +209,12 @@ void renderer_create(renderer *renderer) {
     glEnableVertexAttribArray(1);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    window_title = malloc(1024 * sizeof(char));
 }
 
 void renderer_destroy(renderer *renderer) {
+    free(window_title);
     glDeleteTextures(1, &renderer->texture);
     glDeleteProgram(renderer->shader_program);
 
@@ -269,6 +255,9 @@ static void draw_chunk(chunk* chunk, int chunk_i, int chunk_j, renderer* rendere
     }
 }
 
+double last_frame = 0;
+double last_display_fps = 0;
+
 bool renderer_update(renderer* renderer, world* world) {
     glfwPollEvents();
 
@@ -278,6 +267,36 @@ bool renderer_update(renderer* renderer, world* world) {
     glUseProgram(renderer->shader_program);
     glBindTexture(GL_TEXTURE_2D, renderer->texture);
     glBindVertexArray(renderer->VAO);
+
+    double delta_time = glfwGetTime() - last_frame;
+    last_frame = glfwGetTime();
+    if (glfwGetTime() - last_display_fps > 0.5f) {
+        snprintf(window_title, 1024, "micromc (%.lf FPS)", 1.0/delta_time);
+        glfwSetWindowTitle(renderer->window, window_title);
+        last_display_fps = glfwGetTime();
+    }
+
+    vec3 delta;
+    if(glfwGetKey(renderer->window, GLFW_KEY_W)) {
+        glm_vec3_copy(camera_front, delta);
+        glm_vec3_scale(delta, 1.0f * camera_speed * delta_time, delta);
+        glm_vec3_add(camera_position, delta, camera_position);
+    }
+    if(glfwGetKey(renderer->window, GLFW_KEY_S)) {
+        glm_vec3_copy(camera_front, delta);
+        glm_vec3_scale(delta, -1.0f * camera_speed * delta_time, delta);
+        glm_vec3_add(camera_position, delta, camera_position);
+    }
+    if(glfwGetKey(renderer->window, GLFW_KEY_A)) {
+        glm_cross(camera_front, camera_up, delta);
+        glm_vec3_scale(delta, -1.0f * camera_speed * delta_time, delta);
+        glm_vec3_add(camera_position, delta, camera_position);
+    }
+    if(glfwGetKey(renderer->window, GLFW_KEY_D)) {
+        glm_cross(camera_front, camera_up, delta);
+        glm_vec3_scale(delta, 1.0f * camera_speed * delta_time, delta);
+        glm_vec3_add(camera_position, delta, camera_position);
+    }
 
     for(unsigned int i = 0; i < world->chunk_count; i++) {
         draw_chunk(&(world->chunks[i]), world->chunk_coords[i][0], world->chunk_coords[i][1], renderer);
