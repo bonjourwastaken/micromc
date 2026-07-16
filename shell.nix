@@ -1,7 +1,7 @@
 {
   pkgs ? import <nixpkgs> { },
 }:
-pkgs.llvmPackages_20.stdenv.mkDerivation {
+pkgs.llvmPackages_22.stdenv.mkDerivation {
   name = "devshell";
   nativeBuildInputs = [
     pkgs.meson
@@ -11,5 +11,6 @@ pkgs.llvmPackages_20.stdenv.mkDerivation {
     pkgs.pkg-config
     pkgs.wayland
     pkgs.libxkbcommon
+    pkgs.libffi
   ];
 }

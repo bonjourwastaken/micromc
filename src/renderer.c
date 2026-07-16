@@ -6,6 +6,7 @@
 #include <cglm/mat4.h>
 #include <cglm/util.h>
 #include <cglm/vec3.h>
+
 #include <stdio.h>
 
 #define GLFW_INCLUDE_NONE
@@ -181,7 +182,11 @@ void renderer_create(renderer *renderer) {
     glfwSwapInterval(1);
     renderer->window = glfwCreateWindow(RESOLUTION_X, RESOLUTION_Y, APP_NAME, nullptr, nullptr);
     glfwMakeContextCurrent(renderer->window);
-    gladLoadGL(glfwGetProcAddress);
+    int version = gladLoadGL(glfwGetProcAddress);
+    if(version == 0) {
+        printf("error: couldn't initialize OpenGL context! exiting...\n");
+        return;
+    }
     glViewport(0, 0, RESOLUTION_X, RESOLUTION_Y);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
