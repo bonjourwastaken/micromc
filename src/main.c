@@ -4,15 +4,13 @@
 #include "world.h"
 
 int main(void) {
-    renderer renderer;
-    renderer_create(&renderer);
-    world world = world_create(0, 7);
+	renderer renderer;
+	renderer_create(&renderer);
+	world world = world_create(0, 16);
 
-    while(renderer_update(&renderer, &world)) {
+	while (renderer_update(&renderer, &world)) {}
 
-    }
-
-    world_destroy(&world);
-    renderer_destroy(&renderer);
-    return EXIT_SUCCESS;
+	world_destroy(&world);
+	renderer_destroy(&renderer);
+	return EXIT_SUCCESS;
 }
